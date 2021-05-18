@@ -128,9 +128,10 @@ def test_optimal_control(n=10, seed=0):
                 for T_2 in (planar_quadrotor.min_thrust_per_prop, planar_quadrotor.max_thrust_per_prop):
                     assert (grad_value @ planar_quadrotor.dynamics(state, optimal_control(state, grad_value)) <=
                             grad_value @ planar_quadrotor.dynamics(state, np.array([T_1, T_2])) + 1e-4)
-    except jax.errors.TracerArrayConversionError:
-        print("`PlanarQuadrotor.optimal_control` must be implemented using only `jnp` operations, "
-              "`np` may only be used for constants.")
+    except (jax.errors.JAXTypeError, jax.errors.JAXIndexError):
+        print("`PlanarQuadrotor.optimal_control` must be implemented using only `jnp` operations; "
+              "`np` may only be used for constants, "
+              "and `jnp.where` must be used instead of native python control flow (`if`/`else`).")
 
 
 def test_target_set():
@@ -151,8 +152,10 @@ def test_target_set():
             assert target_set(x) < 0
         for x in out_states:
             assert target_set(x) > 0
-    except jax.errors.TracerArrayConversionError:
-        print("`target_set` must be implemented using only `jnp` operations, `np` may only be used for constants.")
+    except (jax.errors.JAXTypeError, jax.errors.JAXIndexError):
+        print("`target_set` must be implemented using only `jnp` operations, "
+              "`np` may only be used for constants, "
+              "and `jnp.where` must be used instead of native python control flow (`if`/`else`).")
 
 
 def test_envelope_set():
@@ -172,8 +175,10 @@ def test_envelope_set():
             assert envelope_set(x) < 0
         for x in out_states:
             assert envelope_set(x) > 0
-    except jax.errors.TracerArrayConversionError:
-        print("`envelope_set` must be implemented using only `jnp` operations, `np` may only be used for constants.")
+    except (jax.errors.JAXTypeError, jax.errors.JAXIndexError):
+        print("`envelope_set` must be implemented using only `jnp` operations, "
+              "`np` may only be used for constants, "
+              "and `jnp.where` must be used instead of native python control flow (`if`/`else`).")
 
 
 test_optimal_control()
@@ -219,10 +224,15 @@ def optimal_trajectory(full_state, dt=1 / 100, T=5):
     return t, np.array(full_states)
 
 
-def animate_optimal_trajectory(full_state, dt=1 / 100, T=5):
+def animate_optimal_trajectory(full_state, dt=1 / 100, T=5, display_in_notebook=False):
     t, full_states = optimal_trajectory(full_state, dt, T)
     value = grid.interpolate(values, full_state[2:])
-    fig, anim = animate_planar_quad(t, full_states[:, 0], full_states[:, 2], full_states[:, 4], f"V = {value:7.4f}")
+    fig, anim = animate_planar_quad(t,
+                                    full_states[:, 0],
+                                    full_states[:, 2],
+                                    full_states[:, 4],
+                                    f"V = {value:7.4f}",
+                                    display_in_notebook=display_in_notebook)
     return fig, anim
 
 # Dropping the quad straight down (v_y = -5, mimicking waiting for a sec after the drop to turn the props on).
