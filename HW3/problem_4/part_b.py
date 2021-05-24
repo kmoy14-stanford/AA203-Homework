@@ -39,7 +39,10 @@ for n in range(N):
         xp = dynfun.step(u)
         
         # TODO implement recursive least squares update
-
+        # update to C_hat = [A_hat, B_hat]
+        # update P
+        # update Q
+        # update R
 
         x = xp.copy()
         
