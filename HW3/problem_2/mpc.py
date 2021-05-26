@@ -12,7 +12,7 @@ Q = np.eye(2)
 R = 0.01*np.eye(1)
 
 #%% Implement one step of MPC using cvxpy
-# Input: x(t), A, B, Q, R, P, N, x_bar, u_bar, X_f
+# Input: x(t), A, B, Q, R, P, N, x_bar, u_bar, x0, X_f
 # Output: u(t)
 
 def opt_finite_traj(A, B, Q, R, P, N, x_bar, u_bar, x0, X_f0=False):
@@ -30,8 +30,6 @@ def opt_finite_traj(A, B, Q, R, P, N, x_bar, u_bar, x0, X_f0=False):
     for k in range(N):
         cost.append(cvx.quad_form(x[k], Q))
         cost.append(cvx.quad_form(u[k], R))
-        # constraints.append(u[k] <= uUB)
-        # constraints.append(u[k] >= uLB)
         constraints.append(x[k+1] == (A @ (x[k])  + B @ (u[k])))
     constraints.append(u <= u_bar)
     constraints.append(u >= -u_bar)
@@ -98,7 +96,6 @@ feas2, x_hist2 = mpc(A, B, Q, Rb, P, N, x_bar, u_bar, np.array([-4.5, 3]))
 # Plot results
 plt.plot(x_hist1[:,0], x_hist1[:,1], marker='o')
 plt.plot(x_hist2[:,0], x_hist2[:,1],  marker='o')
-plt.axis('square')
 plt.xlabel('x1')
 plt.ylabel('x2')
 plt.grid()
