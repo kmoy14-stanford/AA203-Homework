@@ -23,7 +23,8 @@ for n in range(N):
     
     x = dynfun.reset()
     for t in range(T):
-        
+
+        # update P
 
         # TODO compute policy
         # L -np.linalg.inv(R + B.T.dot(P_k1).dot(B)).dot(B.T).dot(P_k1).dot(A)
@@ -40,10 +41,10 @@ for n in range(N):
         
         # TODO implement recursive least squares update
         # update to C_hat = [A_hat, B_hat]
-        # update P
         # update Q
         # update R
 
         x = xp.copy()
+    # or update Q and R here?
         
     total_costs.append(sum(costs))
