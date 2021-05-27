@@ -3,8 +3,8 @@ from model import dynamics, cost
 import numpy as np
 from copy import deepcopy
 
-# dynfun = dynamics(stochastic=False)
-dynfun = dynamics(stochastic=True) # uncomment for stochastic dynamics
+dynfun = dynamics(stochastic=False)
+# dynfun = dynamics(stochastic=True) # uncomment for stochastic dynamics
 
 costfun = cost()
 
@@ -15,13 +15,14 @@ gamma = 0.95 # discount factor
 # Riccati recursion
 def Riccati(A,B,Q,R):
 
-    # TODO implement infinite horizon riccati recursion
+    # implement infinite horizon riccati recursion
     P = np.zeros(np.shape(A))
     P_k1 = np.ones(np.shape(A))
-    while np.amax(np.absolute(P_k1-P)) > 1e-5:
+    while np.amax(np.absolute(P_k1-P)) > 1e-1:
         P_k1 = deepcopy(P)
         L = -np.linalg.inv(R + B.T.dot(P_k1).dot(B)).dot(B.T).dot(P_k1).dot(A)
         P = Q + A.T.dot(P_k1).dot(A + B.dot(L))
+        P *= gamma
 
     return L,P
 
