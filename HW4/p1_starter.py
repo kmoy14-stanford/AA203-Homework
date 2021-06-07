@@ -67,7 +67,7 @@ class Policy(nn.Module):
         x = F.relu(self.affine2(F.relu(self.affine1(x))))
 
         action_mean = self.action_mean(x)
-        action_var = torch.exp(x)
+        action_var = torch.exp(self.action_var(x))
         state_values = self.value_head(x)
         
         return 0.5*action_mean, 0.5*action_var, state_values
