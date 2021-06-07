@@ -1,3 +1,4 @@
+#%%
 import argparse
 import gym
 import numpy as np
@@ -9,6 +10,9 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 from torch.distributions import Normal
+
+import matplotlib.pyplot as plt
+
 # Cart Pole
 parser = argparse.ArgumentParser(description='PyTorch actor-critic example')
 parser.add_argument('--gamma', type=float, default=0.99, metavar='G',
@@ -57,8 +61,14 @@ class Policy(nn.Module):
         """
         # TODO map input to 
         # mean of action distribution
-        # variance of action distribution (pass this through a non-negative function)
+        # variance of action distribution (pass this through a non-negative function), e.g. torch.exp()
         # state value
+
+        x = F.relu(self.affine2(F.relu(self.affine1(x))))
+
+        action_mean = self.action_mean(x)
+        action_var = torch.exp(x)
+        state_values = self.value_head(x)
         
         return 0.5*action_mean, 0.5*action_var, state_values
     
@@ -96,7 +106,7 @@ def finish_episode():
     for r in model.rewards[::-1]:
         # TODO compute the value at state x
         # via the reward and the discounted tail reward
-
+        R = r + args.gamma * R
         
         
         returns.insert(0, R)
@@ -107,14 +117,16 @@ def finish_episode():
     
     for (log_prob, value), R in zip(saved_actions, returns):
         # TODO compute the advantage via subtracting off value
-        
+        advantage = R - value.item()  
         
         # TODO calculate actor (policy) loss, from log_prob (saved in select action)
         # and from advantage
-        
         # append this to policy_losses
+        policy_losses.append(-log_prob * advantage)
         
         # TODO calculate critic (value) loss
+        value_losses.append(F.smooth_l1_loss(value, torch.tensor([R])))
+
         
     # reset gradients
     optimizer.zero_grad()
@@ -129,7 +141,7 @@ def finish_episode():
     # reset rewards and action buffer
     del model.rewards[:]
     del model.saved_actions[:]
-    
+
 def main():
     running_reward = -100
     
@@ -174,7 +186,16 @@ def main():
                   "the last episode runs to {} time steps!".format(running_reward, t))
 
             # TODO plot episodic_rewards --- submit this plot with your code
-            
+            fig, ax1 = plt.subplots(1, 1, figsize=(8, 6))
+            ax1.set_xlabel("Episode")
+            ax1.set_ylabel("Reward")
+            # ax1.set_title("ESS Revenue, Disaggregated")
+            # p1 = ax1.plot(times_plt, lmp_ls)
+            # p2 = ax1.plot(times_plt, -tou_ls)
+            ax1.set_title("Episodic Rewards")
+            p1 = ax1.plot(episodic_rewards)
+            plt.grid()
+            plt.savefig("ep_rewards.png", dpi=400)
             break
             
 if __name__ == '__main__':
